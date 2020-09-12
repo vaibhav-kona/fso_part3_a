@@ -1,5 +1,6 @@
 const express = require('express');
 const app = express();
+app.use(express.json());
 
 let persons = [{
     id: 1,
@@ -57,6 +58,25 @@ app.delete('/api/persons/:personId', (req, res) => {
   }
 
   res.status(404).end();
+})
+
+app.post('/api/persons/', (req, res) => {
+  const {
+    name,
+    number
+  } = req.body.data;
+
+  const MUL = 1234567891011121314;
+
+  persons.push({
+    id: Math.round(Math.random() * MUL),
+    name,
+    number
+  });
+
+  res.json({
+    data: persons
+  });
 })
 
 app.get('/info', (req, res) => {

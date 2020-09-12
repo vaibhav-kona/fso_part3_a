@@ -68,15 +68,49 @@ app.post('/api/persons/', (req, res) => {
 
   const MUL = 1234567891011121314;
 
-  persons.push({
-    id: Math.round(Math.random() * MUL),
-    name,
-    number
-  });
+  const errors = [];
 
-  res.json({
-    data: persons
-  });
+  if (!name) {
+    errors.push({
+      name: "can't be blank"
+    })
+  } else {
+    const matchingPersonIndex = persons.findIndex(
+      (person) => person.name.toString() === name.toString()
+    );
+    const isNameAlreadyPresent = matchingPersonIndex >= 0;
+
+    if (isNameAlreadyPresent) {
+      errors.push({
+        name: 'already present'
+      });
+    }
+  }
+  if (!number) {
+    errors.push({
+      number: "can't be blank"
+    })
+  };
+
+
+  const areErrorsPresent = errors.length > 0;
+  if (areErrorsPresent) {
+    res.status(422).json({
+      errors
+    });
+  }
+
+  if (name && number && !areErrorsPresent) {
+    persons.push({
+      id: Math.round(Math.random() * MUL),
+      name,
+      number
+    });
+
+    res.json({
+      data: persons
+    });
+  }
 })
 
 app.get('/info', (req, res) => {

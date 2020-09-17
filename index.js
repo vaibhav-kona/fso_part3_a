@@ -2,24 +2,28 @@ const express = require('express');
 const app = express();
 const morgan = require('morgan');
 
+morgan.token('post-data-object', (req, res) => {
+  return JSON.stringify(req.body);
+})
+
 app.use(express.json());
-app.use(morgan('tiny'));
+app.use(morgan(':method :url :status :res[content-length] - :response-time ms :post-data-object'));
 
 let persons = [{
-    id: 1,
-    name: 'Harshita',
-    number: 'abcd'
-  },
-  {
-    id: 2,
-    name: 'Ramakrishna',
-    number: 'abcdedf'
-  },
-  {
-    id: 3,
-    name: 'Usha Devi',
-    number: '234dsfsd'
-  }
+  id: 1,
+  name: 'Harshita',
+  number: 'abcd'
+},
+{
+  id: 2,
+  name: 'Ramakrishna',
+  number: 'abcdedf'
+},
+{
+  id: 3,
+  name: 'Usha Devi',
+  number: '234dsfsd'
+}
 ];
 
 app.get('/api/persons', (req, res) => {

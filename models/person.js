@@ -34,7 +34,7 @@ personSchema.set('toJSON', {
     delete returnedObj._id;
     delete returnedObj.__v;
   }
-})
+});
 
 const Person = mongoose.model('Person', personSchema);
 

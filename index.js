@@ -54,65 +54,39 @@ app.delete('/api/persons/:personId', (req, res) => {
 
 })
 
-app.post('/api/persons/', (req, res) => {
-  const {
-    name,
-    number
-  } = req.body;
+app.post('/api/persons/', (req, res, next) => {
+  const { name, number } = req.body;
 
   const MUL = 1234567891011121314;
 
   const errors = [];
 
-  if (!number) {
-    errors.push({
-      number: "can't be blank"
+  const person = new Person({
+    name,
+    number
+  });
+
+  person.save()
+    .then((savedPerson) => {
+      return {
+        data: savedPerson.toJSON(),
+      };
     })
-  };
-
-  if (!name) {
-    errors.push({
-      name: "can't be blank"
+    .then((saveAndFormattedPerson) => {
+      res.json(saveAndFormattedPerson);
     })
-  } else {
-    Person.find({ name }).then((matchingPersons) => {
-      const isNameAlreadyPresent = matchingPersons.length > 0;
-
-      if (isNameAlreadyPresent) {
-        errors.push({
-          name: 'already present'
-        });
-      }
-
-      const areErrorsPresent = !!(errors.length > 0);
-
-      if (areErrorsPresent) {
-        res.status(422).json({
-          errors
-        });
-      }
-
-      if (name && number && !areErrorsPresent) {
-        const person = new Person({
-          name,
-          number
-        });
-
-        person.save().then((savedPerson) => {
-          res.json({
-            data: savedPerson
-          });
-        })
-      }
+    .catch((err) => {
+      console.log("err while saving : ", err);
+      return next(err);
     });
-  }
+
 })
 
 app.put('/api/persons/:personId', (req, res) => {
   const { name, number } = req.body;
   const person = { name, number };
 
-  Person.findByIdAndUpdate(req.params.personId, person, { new: true })
+  Person.findByIdAndUpdate(req.params.personId, person, { new: true, runValidators: true })
     .then((updatedPerson) => {
       res.status(201).send(updatedPerson);
     })
@@ -135,13 +109,16 @@ const unknownEndpoint = (request, response) => {
 app.use(unknownEndpoint)
 
 const errorHandler = (error, request, response, next) => {
-  console.error(error.message)
 
   if (error.name === 'CastError') {
     return response.status(400).send({ error: 'malformatted id' })
   }
 
-  next(error)
+  if (error.name === 'ValidationError') {
+    return response.status(422).json({ error: error.message })
+  }
+
+  next(error);
 }
 
 app.use(errorHandler)
